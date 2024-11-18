@@ -90,6 +90,8 @@ Error PlayTwo() {
 		return Error::WrongAnswer;
 	}
 	
+	My::Counter::Get().SetBlockSize(100); // default val
+	
 	const std::filesystem::path file_name = "output.txt";
 
 	std::ofstream statistic_file("stats.txt", std::ios::trunc);
