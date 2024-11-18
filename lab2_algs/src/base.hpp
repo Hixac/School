@@ -5,6 +5,8 @@
 
 namespace My {
 
+	using std::size_t;
+	
 #if defined(__unix__)
 
 	using StrView = std::string_view;
