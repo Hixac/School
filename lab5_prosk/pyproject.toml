@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pyright]
+include = ["."]
+exclude = [
+    "**/__pycache__",
+]
+defineConstant = { DEBUG = true }
+
+venv = "venv"
+venvPath = "."
+
+reportMissingImports = "error"
+reportMissingTypeStubs = false
+
+pythonVersion = "3.12"
+pythonPlatform = "Linux"
