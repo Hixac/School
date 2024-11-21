@@ -6,13 +6,14 @@ namespace Math {
 	{
 	public:
 		T3DPoint() = default;
-		inline T3DPoint(int x, int y, int z) : x(x), y(y), z(z) {}
+		T3DPoint(int t) : x(t), y(t), z(t) {}
+		T3DPoint(int x, int y, int z) : x(x), y(y), z(z) {}
 		T3DPoint(const T3DPoint&) = default;
 		~T3DPoint() = default;
 
-		double operator+(const T3DPoint& p);
-		double operator-(const T3DPoint& p);
-		double operator*(const T3DPoint& p);
+	    T3DPoint operator+(const T3DPoint& p);
+	    T3DPoint operator-(const T3DPoint& p);
+	    T3DPoint operator*(const T3DPoint& p);
 		
 	    double GetLength() const;
 		

@@ -4,19 +4,31 @@
 
 namespace Math {
 
-	double T3DPoint::operator+(const T3DPoint& p)
+    T3DPoint T3DPoint::operator+(const T3DPoint& p)
 	{
-		return GetLength() + p.GetLength();
+	    x += p.x;
+		y += p.y;
+		z += p.z;
+
+		return *this;
 	}
 	
-	double T3DPoint::operator-(const T3DPoint& p)
-	{
-		return GetLength() - p.GetLength();
+    T3DPoint T3DPoint::operator-(const T3DPoint& p)
+    {
+	    x -= p.x;
+		y -= p.y;
+		z -= p.z;
+
+		return *this;
 	}
 	
-	double T3DPoint::operator*(const T3DPoint& p)
+    T3DPoint T3DPoint::operator*(const T3DPoint& p)
 	{
-		return x*p.x + y*p.y + z*p.z;
+	    x *= p.x;
+		y *= p.y;
+		z *= p.z;
+
+		return *this;
 	}
 	
     double T3DPoint::GetLength() const
@@ -26,22 +38,22 @@ namespace Math {
 	
 	bool T3DPoint::operator>(const T3DPoint& p)
 	{
-		return x > p.x && y > p.y && z > p.z;
+		return GetLength() > p.GetLength();
 	}
 	
 	bool T3DPoint::operator>=(const T3DPoint& p)
 	{
-		return x >= p.x && y >= p.y && z >= p.z;
+	    return GetLength() >= p.GetLength();
 	}
 	
 	bool T3DPoint::operator<(const T3DPoint& p)
 	{
-		return x < p.x && y < p.y && z < p.z;
+	    return GetLength() < p.GetLength();
 	}
 	
 	bool T3DPoint::operator<=(const T3DPoint& p)
 	{
-		return x <= p.x && y <= p.y && z <= p.z;
+		return GetLength() <= p.GetLength();
 	}
 	
 	bool T3DPoint::operator!=(const T3DPoint& p)
@@ -51,7 +63,7 @@ namespace Math {
 	
 	bool T3DPoint::operator==(const T3DPoint& p)
 	{
-		return x == p.x && y == p.y && z == p.z;
+	    return GetLength() == p.GetLength();
 	}
 
 	double operator+(double d, const T3DPoint& p)
