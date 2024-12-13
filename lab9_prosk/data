@@ -1,0 +1,22 @@
+[
+    {
+        "type": "Car",
+        "brand": "toyota",
+        "model": "GTX228",
+        "year": "1999",
+        "max_speed": "150",
+        "weight": "10000",
+        "price": "500",
+        "num_doors": "5"
+    },
+    {
+        "type": "Motorbike",
+        "brand": "kawasaki",
+        "model": "h23123",
+        "year": "2000",
+        "max_speed": "200",
+        "weight": "200",
+        "price": "20000",
+        "engine_capacity": "200000"
+    }
+]
