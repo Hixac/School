@@ -17,7 +17,7 @@ namespace My {
 		void do_every_word(std::function<std::string(std::string_view s)> fn);
 		
 		static std::string cut_end(std::string_view str, std::string_view sub);
-		static std::string cut_end_letters(std::string_view str, std::vector<char> chars, int range);
+		static std::string cut_end_letters(std::string_view str, std::vector<char> chars);
 
 		inline std::string_view get_text() { return m_text; }
 		

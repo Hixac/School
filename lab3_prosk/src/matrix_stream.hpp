@@ -20,6 +20,18 @@ namespace Math {
 	    in >> t.x >> t.y;
 		return in;
 	}
+
+	static std::ostream& operator<<(std::ostream& out, const T3DPoint& t)
+	{
+	    out << t.x << ' ' << t.y << ' ' << t.z;
+		return out;
+	}
+
+	static std::ostream& operator<<(std::ostream& out, const T2DPoint& t)
+	{
+	    out << t.x << ' ' << t.y;
+		return out;
+	}
 	
 	template<typename T>
 	static std::istream& operator>>(std::istream& in, TPointMatrix<T>* m)
