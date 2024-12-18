@@ -1,6 +1,6 @@
 #include <matrix.hpp>
 
 
-namespace Math {
+amespace Math {
 	
 }

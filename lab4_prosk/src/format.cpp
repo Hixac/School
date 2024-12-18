@@ -58,10 +58,11 @@ namespace My {
 		return ret;
 	}
 
-	std::string Format::cut_end_letters(std::string_view str, std::vector<char> chars, int range) {
+	std::string Format::cut_end_letters(std::string_view str, std::vector<char> chars) {
 		std::string ret(str);
 
-		for (size_t i = ret.length() - 1; i > ret.length() - 4; --i) {
+		size_t prev_len = ret.length();
+		for (size_t i = prev_len - 1; i > prev_len - 4; --i) {
 			if (std::any_of(chars.begin(), chars.end(), [&](char el) { return el == ret[i]; })) {
 				ret.erase(i, 1);
 			}

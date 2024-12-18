@@ -46,7 +46,6 @@ namespace Math {
 		Info CountSum();
 
     private:
-		size_t m_fixed_inner_size;
 		std::vector<std::vector<T>> m_arrt;
 	};
 
@@ -91,7 +90,6 @@ namespace Math {
 	template<typename T>
 	TPointMatrix<T>& TPointMatrix<T>::operator=(const TPointMatrix<T>& m)
 	{
-		m_fixed_inner_size = m.m_fixed_inner_size;
 		m_arrt = m.m_arrt;
 
 		return this;
@@ -102,7 +100,7 @@ namespace Math {
 	{
 		std::random_device dev;
 		std::mt19937 rng(dev());
-		std::uniform_int_distribution<std::mt19937::result_type> dist(-1000, 1000);
+		std::uniform_int_distribution<int> dist(-1000, 1000);
 
 	    m_arrt[extern_id][inner_id] = dist(rng);
 	}
@@ -125,11 +123,9 @@ namespace Math {
 	{
 		double midarth = 0;
 		for (auto arr : m_arrt) {
-			double temp;
 			for (auto el : arr) {
-			    temp = el * el;
+			    midarth += el;
 			}
-			midarth += sqrt(temp);
 		}
 		midarth /= m_arrt.size();
 
@@ -150,19 +146,20 @@ namespace Math {
 		template<typename T>
 		TPointMatrix<T>::Info TPointMatrix<T>::CountSum()
 		{
-			TPointMatrix::Info info {};
+			TPointMatrix::Info info {0, 0};
 			for (size_t i = 0; i < m_arrt.size(); ++i) {
 				if (i % 2 != 0) {
-					bool is_neg = false;
-					double temp = 0;
 					for (auto el : m_arrt[i]) {
-						if (el < 0) is_neg = true;
-						temp += static_cast<double>(el*el);
+						if (el < 0) {
+							info.sum_of_neg += el;
+						} else {
+							info.sum_of_pos += el;
+						}
 					}
-					if (is_neg) info.sum_of_neg += sqrt(temp);
-					else info.sum_of_pos += sqrt(temp);
 				}
 			}
+
+			return info;
 		}
 	
 	template<typename T>                   
@@ -199,7 +196,7 @@ namespace Math {
 		template<typename T>
 		std::ostream& TPointMatrix<T>::Output(std::ostream& out)
 		{
-			out << m_arrt.size() << ' ' << m_fixed_inner_size;
+			out << m_arrt.size();
 			for (auto& v : m_arrt) {
 				for (auto& el : v) {
 					out << el;

@@ -11,15 +11,23 @@ int main() {
 
 	if (ans == 1) {
 		std::string buf;
-		std::cout << "Введите текст.\n";
-		std::cin >> buf;
-		
-		My::Format fmt(buf);
+		std::cout << "Введите текст: ";
 
-		std::cout << "Введите буквы (слитно), которые вам не нравятся, для дальнейшего их удаления в тексте. ";
+		std::string text = "";
+	    while (std::getline(std::cin, buf)) {
+			text += buf;
+			if (buf[buf.length() - 1] == '.') {
+				text.erase(text.length() - 1, 1);
+				break;
+			}
+		}
+		
+		My::Format fmt(text);
+
+		std::cout << "Введите буквы (слитно), которые вам не нравятся, для дальнейшего их удаления в тексте: ";
 		std::cin >> buf;
 		
-		auto fn = std::bind(My::Format::cut_end_letters, std::placeholders::_1, std::vector(buf.begin(), buf.end()), 3);
+		auto fn = std::bind(My::Format::cut_end_letters, std::placeholders::_1, std::vector(buf.begin(), buf.end()));
 		fmt.do_every_word(fn);
 		
 		std::cout << "Выходной текст:\n" << fmt.get_text();
@@ -36,7 +44,7 @@ int main() {
 		My::Format fmt(in);
 		in.close();
 
-		auto fn = std::bind(My::Format::cut_end_letters, std::placeholders::_1, std::vector(buf.begin(), buf.end()), 3);
+		auto fn = std::bind(My::Format::cut_end_letters, std::placeholders::_1, std::vector(buf.begin(), buf.end()));
 		fmt.do_every_word(fn);
 		
 		std::cout << "Выходной текст:\n" << fmt.get_text();

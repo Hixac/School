@@ -4,7 +4,7 @@
 #include <t2dpoint.hpp>
 #include <matrix_stream.hpp>
 
-int main(void)
+int main()
 {
 	std::string buf;
 	std::cout << "Заполнить элемент массива 1) ручно или 2) случайным значением? (1/2) ";
@@ -38,6 +38,10 @@ int main(void)
 	} else {
 		return 0;
 	}
+
+	std::cout << "Наиболее удалённые от среднеарифмитического значение " << pts.GetFarthest() << '\n';
+	auto sums = pts.CountSum();
+	std::cout << "Сумма положительных и отрицательных элементов в нечётных столбцах " << sums.sum_of_pos << ' ' << sums.sum_of_neg;
 	
 	return 0;
 }
