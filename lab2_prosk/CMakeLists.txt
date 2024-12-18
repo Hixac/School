@@ -13,17 +13,3 @@ target_include_directories(${PROJECT_NAME} PUBLIC src/)
 add_subdirectory(src/) # исходный код
 target_include_directories(src PUBLIC src/)
 target_link_libraries(${PROJECT_NAME} src)
-
-find_package(OpenGL REQUIRED)
-target_link_libraries(src PUBLIC OpenGL::GL)
-
-target_include_directories(src PUBLIC ext/)
-add_subdirectory(ext/)  # файлы с библиотекой imgui
-target_link_libraries(src PUBLIC imgui)
-
-target_include_directories(${PROJECT_NAME} PUBLIC glfw/include/GLFW/)
-target_include_directories(src PUBLIC glfw/include/GLFW/)
-target_include_directories(imgui PUBLIC glfw/include/GLFW/)
-add_subdirectory(glfw/) # библиотека с загрузкой окна
-target_link_libraries(imgui PUBLIC glfw ${GLFW_LIBRARIES})
-target_link_libraries(src PUBLIC glfw ${GLFW_LIBRARIES})
