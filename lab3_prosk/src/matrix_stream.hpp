@@ -37,23 +37,27 @@ namespace Math {
 	static std::istream& operator>>(std::istream& in, TPointMatrix<T>* m)
 	{
 		m->Input(in);
+		return in;
 	}
 
 	template<typename T>
 	static std::ostream& operator<<(std::ostream& out, TPointMatrix<T>* m)
 	{
 	    m->Output(out);
+		return out;
 	}
 
 	template<typename T>
 	static TPointMatrix<T> ReadFile(std::ifstream& in, TPointMatrix<T>* m)
 	{
 		in >> m;
+		return *m;
 	}
 
 	template<typename T>
 	static TPointMatrix<T> WriteFile(std::ofstream& out, TPointMatrix<T>* m)
 	{
 	    out << m;
+		return *m;
 	}
 }

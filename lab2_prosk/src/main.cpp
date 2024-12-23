@@ -59,8 +59,8 @@ void print_help()
     println(swallow({"создаёт новый экземпляр ", SET_COLOUR("Грузового Транспорта", BRIGHT_RED, YELLOW), " в динамическую память."}), 5, YELLOW);
 	println("отобр", 1, BRIGHT_RED);
     println(swallow({"отобразить ", SET_COLOUR("Грузовой Транспорт, помещённые в динамическую память", BRIGHT_RED, YELLOW), "."}), 5, YELLOW);
-	println("сорт", 1, BRIGHT_RED);
-    println(swallow({"сортировать ", SET_COLOUR("Грузовой Транспорт, помещённые в динамическую память", BRIGHT_RED, YELLOW), " по площади."}), 5, YELLOW);
+	println("принт", 1, BRIGHT_RED);
+    println(swallow({"вывести ", SET_COLOUR("по указанному диапазону Грузовой Транспорт, помещённый в динамическую память,", BRIGHT_RED, YELLOW), " по площади."}), 5, YELLOW);
 	println("посч", 1, BRIGHT_RED);
     println(swallow({"вывести ", SET_COLOUR("количество уникальных пунктов отправления и назначения", BRIGHT_RED, YELLOW), "."}), 5, YELLOW);
 	println("зап", 1, BRIGHT_RED);
@@ -158,7 +158,7 @@ Error interface()
 			WriteFile(tc);
 		} else if (buf == "выв") {
 			ReadFile(tc);
-		} else if (buf == "сорт") {
+		} else if (buf == "принт") {
 			Sort(tc);
 		} else if (buf == "посч") {
 			tc.PrintCountDepDest();

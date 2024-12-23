@@ -35,7 +35,7 @@ namespace Tran {
 		};
 		
 		virtual std::ostream& out(std::ostream& out) const {
-			out << m_name << m_dep << m_dest << m_capacity;
+			out << m_name << ' ' << m_dep << ' ' << m_dest << ' ' << m_capacity;
 			return out;
 		};
 		

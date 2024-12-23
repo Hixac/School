@@ -78,8 +78,6 @@ namespace Tran {
 			    Ship* s = new Ship();
 				in >> *s;
 				veh = s;
-			} else {
-				continue;
 			}
 			m_vehicles.push_back(veh);
 		}
@@ -88,6 +86,7 @@ namespace Tran {
 	void TransportCompany::WriteToFile(std::ofstream& out) const
 	{
 		for (auto v : m_vehicles) {
+			out << v->GetType() << ' ';
 			if (v->GetType() == "Lorry") {
 				Lorry* l = dynamic_cast<Lorry*>(v);
 				out << *l;

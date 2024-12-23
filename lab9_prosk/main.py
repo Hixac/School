@@ -3,7 +3,15 @@ from os.path import isfile
 import json
 
 class Vehicle(ABC):
-    def __init__(self, brand, model, year, max_speed, weight, price):
+    def __init__(self):
+        self._brand = ""
+        self._model = ""
+        self._year = 0
+        self._max_speed = 0
+        self._weight = 0
+        self._price = 0
+
+    def init(self, brand, model, year, max_speed, weight, price):
         self._brand = brand
         self._model = model
         self._year = year
@@ -15,33 +23,70 @@ class Vehicle(ABC):
     def display_info(self):
         pass
 
+    def input_CLI(self):
+        self._brand = input("Введите бренд транспорта: ")
+        self._model = input("Введите модель транспорта: ")
+        self._data = input("Введите год изготовления транспорта: ")
+        self._max_speed = input("Введите максимальная скорость транспорта: ")
+        self._weight = input("Введите вес транспорта: ")
+        self._price = input("Введите цену транспорта: ")
+
+    def output(self):
+        return {'brand': self._brand, 'model': self._model, 'data': self._data, 'max_speed': self._max_speed, 'weight': self._weight, 'price': self._price}
+    
     def my_name(self):
         return f"I am a {self.__class__.__name__}"
 
 class Car(Vehicle):
-    def __init__(self, brand, model, year, max_speed, weight, price, num_doors):
-        super().__init__(brand, model, year, max_speed, weight, price)
+    def __init__(self):
+        super().__init__()
+
+    def init(self, brand, model, year, max_speed, weight, price, num_doors):
+        super().init(brand, model, year, max_speed, weight, price)
         self.__num_doors = num_doors
 
     def display_info(self):
-        return (f"Car: {self._brand} {self._model}, Year: {self._year}, "
-                f"Max Speed: {self._max_speed} km/h, Weight: {self._weight} kg, "
-                f"Price: {self._price}, Number of Doors: {self.__num_doors}")
+        return (f"Car: {self._brand} {self._model}, Year: {str(self._year)}, "
+                f"Max Speed: {str(self._max_speed)} km/h, Weight: {str(self._weight)} kg, "
+                f"Price: {str(self._price)}, Number of Doors: {str(self.__num_doors)}")
+
+    def input_CLI(self):
+        super().input_CLI()
+        self.__num_doors = input("Введите число дверей: ")
+
+    def output(self):
+        d = super().output()
+        d['type'] = 'Car'
+        d['num_doors'] = self.__num_doors
+        return d
 
 class Motorbike(Vehicle):
-    def __init__(self, brand, model, year, max_speed, weight, price, engine_capacity):
-        super().__init__(brand, model, year, max_speed, weight, price)
+    def __init__(self):
+        super().__init__()
+
+    def init(self, brand, model, year, max_speed, weight, price, engine_capacity):
+        super().init(brand, model, year, max_speed, weight, price)
         self.__engine_capacity = engine_capacity
 
     def display_info(self):
-        return (f"Motorbike: {self._brand} {self._model}, Year: {self._year}, "
-                f"Max Speed: {self._max_speed} km/h, Weight: {self._weight} kg, "
-                f"Price: {self._price}, Engine Capacity: {self.__engine_capacity} cc")
+        return (f"Car: {self._brand} {self._model}, Year: {str(self._year)}, "
+                f"Max Speed: {str(self._max_speed)} km/h, Weight: {str(self._weight)} kg, "
+                f"Price: {str(self._price)}, Number of Doors: {str(self.__engine_capacity)} cc")
+
+    def input_CLI(self):
+        super().input_CLI()
+        self.__engine_capacity = input("Введите вместимость двигателя: ")
+
+    def output(self):
+        d = super().output()
+        d['type'] = 'Motorbike'
+        d['engine_capacity'] = self.__engine_capacity
+        return d
 
 class Garage:
     def __init__(self):
         self.vehicles = []
-
+    
     def add_vehicle(self, vehicle):
         self.vehicles.append(vehicle)
 
@@ -71,36 +116,17 @@ class Garage:
             self.vehicles.clear()
             for item in data:
                 if item['type'] == 'Car':
-                    vehicle = Car(item['brand'], item['model'], item['year'], item['max_speed'], item['weight'], item['price'], item['num_doors'])
+                    vehicle = Car()
+                    vehicle.init(item['brand'], item['model'], item['year'], item['max_speed'], item['weight'], item['price'], item['num_doors'])
                 elif item['type'] == 'Motorbike':
-                    vehicle = Motorbike(item['brand'], item['model'], item['year'], item['max_speed'], item['weight'], item['price'], item['engine_capacity'])
+                    vehicle = Motorbike()
+                    vehicle.init(item['brand'], item['model'], item['year'], item['max_speed'], item['weight'], item['price'], item['engine_capacity'])
                 self.add_vehicle(vehicle)
 
     def save_vehicles_to_file(self, file_path):
         data = []
         for vehicle in self.vehicles:
-            if isinstance(vehicle, Car):
-                data.append({
-                    'type': 'Car',
-                    'brand': vehicle._brand,
-                    'model': vehicle._model,
-                    'year': vehicle._year,
-                    'max_speed': vehicle._max_speed,
-                    'weight': vehicle._weight,
-                    'price': vehicle._price,
-                    'num_doors': vehicle._Car__num_doors
-                })
-            elif isinstance(vehicle, Motorbike):
-                data.append({
-                    'type': 'Motorbike',
-                    'brand': vehicle._brand,
-                    'model': vehicle._model,
-                    'year': vehicle._year,
-                    'max_speed': vehicle._max_speed,
-                    'weight': vehicle._weight,
-                    'price': vehicle._price,
-                    'engine_capacity': vehicle._Motorbike__engine_capacity
-                })
+            data.append(vehicle.output())
         with open(file_path, 'w') as file:
             json.dump(data, file, indent=4)
 
@@ -139,29 +165,16 @@ if __name__ == "__main__":
         elif choice == '5':
             class_name = input("Введите название класса (Car/Motorbike): ")
             if class_name == 'Car':
-                brand = input("Введите бренд машины: ")
-                model = input("Введите модель машины: ")
-                data = input("Введите год изготовления машины: ")
-                max_speed = input("Введите максимальная скорость машины: ")
-                weight = input("Введите вес машины: ")
-                price = input("Введите цену машины: ")
-                num_doors = input("Введите количество дверей машины: ")
-                car = Car(brand, model, data, max_speed, weight, price, num_doors)
+                car = Car()
+                car.input_CLI()
 
                 garage.add_vehicle(car)
 
                 print("Машина добавлена!")
             elif class_name == 'Motorbike':
-                brand = input("Введите бренд мотоцикла: ")
-                model = input("Введите модель мотоцикла: ")
-                data = input("Введите год изготовления мотоцикла: ")
-                max_speed = input("Введите максимальная скорость мотоцикла: ")
-                weight = input("Введите вес мотоцикла: ")
-                price = input("Введите цену мотоцикла: ")
-                engine_capacity = input("Введите вместимость двигателя мотоцикла: ")
+                mbike = Motorbike()
+                mbike.input_CLI()
                 
-                mbike = Motorbike(brand, model, data, max_speed, weight, price, engine_capacity)
-
                 garage.add_vehicle(mbike)
 
                 print("Мотоцикл добавлен!")

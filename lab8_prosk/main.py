@@ -52,34 +52,6 @@ def pages_for_word(words, target_word):
             return word.get_pages()
     return []
 
-words.sort(key=lambda w: w.get_count(), reverse=True)
-
-def save_to_file(words, filename):
-    with open(filename, "w") as file:
-        for word in words:
-            pages_str = ' '.join([str(i) for i in word.get_pages()])
-            file.write(f"{word.get_word()} {pages_str} {word.get_count()}\n")
-
-def load_from_file(filename):
-    words = []
-    with open(filename, "r") as file:
-        for line in file:
-            parts = line.strip().split()
-            word = parts[0]
-            pages = list(map(int, parts[1:]))
-            count = int(parts[-1])
-            words.append(Word(word, pages, count))
-    return words
-
-print("Слова в диапазоне страниц 2-5:", words_in_page_range(words, 2, 5))
-print("Слова, повторяющиеся больше 100 раз:", words_with_high_count(words))
-print("Страницы для слова 'python':", pages_for_word(words, "python"))
-print("Отсортированный список по количеству повторений:", words)
-
-save_to_file(words, "words.txt")
-new_words = load_from_file("words.txt")
-print("Слова из файла:", new_words)
-
 class Ms:
     def __init__(self):
         self.__word_list = []
@@ -93,8 +65,38 @@ class Ms:
 
     def filter_words(self, condition):
         return [word for word in self.__word_list if condition(word)]
+    
+    def save_to_file(self, words, filename):
+        with open(filename, "w") as file:
+            for word in words:
+                pages_str = ' '.join([str(i) for i in word.get_pages()])
+                file.write(f"{word.get_word()} {pages_str} {word.get_count()}\n")
+    
+    def load_from_file(self, filename):
+        words = []
+        with open(filename, "r") as file:
+            for line in file:
+                parts = line.strip().split()
+                word = parts[0]
+                pages = list(map(int, parts[1:]))
+                count = int(parts[-1])
+                words.append(Word(word, pages, count))
+        return words
+    
 
 ms = Ms()
+
+words.sort(key=lambda w: w.get_count(), reverse=True)
+
+print("Слова в диапазоне страниц 2-5:", words_in_page_range(words, 2, 5))
+print("Слова, повторяющиеся больше 100 раз:", words_with_high_count(words))
+print("Страницы для слова 'python':", pages_for_word(words, "python"))
+print("Отсортированный список по количеству повторений:", words)
+
+ms.save_to_file(words, "words.txt")
+new_words = ms.load_from_file("words.txt")
+print("Слова из файла:", new_words)
+
 ms.add_word(Word("example", [1, 2, 5], 120))
 ms.add_word(Word("test", [2, 3], 90))
 ms.display_all_words()

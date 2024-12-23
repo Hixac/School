@@ -23,7 +23,7 @@ namespace Tran {
 			
 		inline std::ostream& out(std::ostream& out) const override {
 			CargoVehicle::out(out);
-			out << m_containers;
+			out << ' ' << m_containers;
 			return out;
 		}
 		

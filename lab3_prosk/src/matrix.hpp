@@ -203,6 +203,8 @@ namespace Math {
 				}
 				out << '\n';
 			}
+
+			return out;
 		}
 
 }
