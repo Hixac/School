@@ -73,7 +73,6 @@ namespace Math {
 	{
 	    return m_arrt.size() >= m.m_arrt.size();
 	}
-
 	
 	template<typename T>
 	bool TPointMatrix<T>::operator>(const TPointMatrix<T>& m)
@@ -143,24 +142,24 @@ namespace Math {
 		return val;
 	}
 
-		template<typename T>
-		TPointMatrix<T>::Info TPointMatrix<T>::CountSum()
-		{
-			TPointMatrix::Info info {0, 0};
-			for (size_t i = 0; i < m_arrt.size(); ++i) {
-				if (i % 2 != 0) {
-					for (auto el : m_arrt[i]) {
-						if (el < 0) {
-							info.sum_of_neg += el;
-						} else {
-							info.sum_of_pos += el;
-						}
+	template<typename T>
+	TPointMatrix<T>::Info TPointMatrix<T>::CountSum()
+	{
+		TPointMatrix::Info info {0, 0};
+		for (size_t i = 0; i < m_arrt.size(); ++i) {
+			if (i % 2 != 0) {
+				for (auto el : m_arrt[i]) {
+					if (el < 0) {
+						info.sum_of_neg += el;
+					} else {
+						info.sum_of_pos += el;
 					}
 				}
 			}
-
-			return info;
 		}
+		
+		return info;
+	}
 	
 	template<typename T>                   
 	std::istream& TPointMatrix<T>::Input(std::istream& in)
