@@ -33,7 +33,7 @@ void bst_search_test(FILE *d, Bst_Node *root, int *arr, size_t s) {
 void bst_delete_test(FILE *d, Bst_Node *root, int *arr, size_t s) {
     struct timeval tval_before, tval_after, tval_result;
     gettimeofday(&tval_before, NULL);
-    for (int i = 0; i < s; ++i) {
+    for (int i = s; i > -1; --i) {
         root = bst_delete_node(root, arr[i]);
     }
     gettimeofday(&tval_after, NULL);

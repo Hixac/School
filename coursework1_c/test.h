@@ -5,7 +5,7 @@
 #include "./avl.h"
 #include "./brt.h"
 
-void fprint_elapsed_time(FILE *d, char* prefix, long int sec, long int usec);
+void fprint_elapsed_time(FILE *d, char *prefix, long int sec, long int usec);
 
 void bst_insert_test(FILE *d, Bst_Node *root, int *arr, size_t s);
 void bst_search_test(FILE *d, Bst_Node *root, int *arr, size_t s);

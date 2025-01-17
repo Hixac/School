@@ -1,0 +1,1135 @@
+OBJS = main.o avl.o brt.o bst.o test.o
+FLAGS = -g
+
+.PHONY: all clean
+
+all: $(OBJS)
+	gcc $(FLAGS) -o main $^
+
+main.o: main.c
+	gcc $(FLAGS) -c $^
+
+bst.o: bst.c
+	gcc $(FLAGS) -c $^
+
+avl.o: avl.c
+	gcc $(FLAGS) -c $^
+
+brt.o: brt.c
+	gcc $(FLAGS) -c $^
+
+test.o: test.c
+	gcc $(FLAGS) -c $^
+
+clean:
+	rm *.o main
+
+#ifndef AVL_HEADER
+#define AVL_HEADER
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Структура узла AVL дерева
+typedef struct Avl_Node {
+    int data;               // Данные узла
+    struct Avl_Node *left;      // Левый потомок
+    struct Avl_Node *right;     // Правый потомок
+    int height;             // Высота узла
+} Avl_Node;
+
+int avl_max(int a, int b);
+int avl_height(Avl_Node *node);
+
+Avl_Node *avl_new_node(int data);
+Avl_Node *avl_right_rotate(Avl_Node *y);
+Avl_Node *avl_left_rotate(Avl_Node *x);
+
+int avl_get_balance(Avl_Node *node);
+Avl_Node *avl_insert(Avl_Node *node, int data);
+Avl_Node *avl_min_value_node(Avl_Node *node);
+Avl_Node *avl_delete_node(Avl_Node *root, int data);
+Avl_Node *avl_search(Avl_Node *root, int data);
+
+void avl_print_tree(Avl_Node *root, int ind);
+
+#endif
+
+#include "./avl.h"
+
+// Функция для вычисления максимума из двух чисел
+int avl_max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// Функция для получения высоты узла
+int avl_height(Avl_Node *node) {
+    if (node == NULL)
+        return 0;
+    return node->height;
+}
+
+// Функция для создания нового узла
+Avl_Node* avl_new_node(int data) {
+    Avl_Node *node = (Avl_Node *)malloc(sizeof(Avl_Node));
+    node->data = data;
+    node->left = NULL;
+    node->right = NULL;
+    node->height = 1; // Начальная высота нового узла
+    return node;
+}
+
+// Правый поворот вокруг узла y
+Avl_Node* avl_right_rotate(Avl_Node *y) {
+    Avl_Node *x = y->left;
+    Avl_Node *T2 = x->right;
+
+    // Выполняем поворот
+    x->right = y;
+    y->left = T2;
+
+    // Обновляем высоты
+    y->height = avl_max(avl_height(y->left), avl_height(y->right)) + 1;
+    x->height = avl_max(avl_height(x->left), avl_height(x->right)) + 1;
+
+    return x; // Новый корень поддерева
+}
+
+// Левый поворот вокруг узла x
+Avl_Node* avl_left_rotate(Avl_Node *x) {
+    Avl_Node *y = x->right;
+    Avl_Node *T2 = y->left;
+
+    // Выполняем поворот
+    y->left = x;
+    x->right = T2;
+
+    // Обновляем высоты
+    x->height = avl_max(avl_height(x->left), avl_height(x->right)) + 1;
+    y->height = avl_max(avl_height(y->left), avl_height(y->right)) + 1;
+
+    return y; // Новый корень поддерева
+}
+
+// Получение баланса узла
+int avl_get_balance(Avl_Node *node) {
+    if (node == NULL)
+        return 0;
+    return avl_height(node->left) - avl_height(node->right);
+}
+
+// Вставка узла в AVL дерево
+Avl_Node *avl_insert(Avl_Node *node, int data) {
+    // Обычная вставка как в бинарное дерево поиска
+    if (node == NULL)
+        return avl_new_node(data);
+
+    if (data < node->data)
+        node->left = avl_insert(node->left, data);
+    else if (data > node->data)
+        node->right = avl_insert(node->right, data);
+    else
+        return node; // Дубликаты не допускаются
+
+    // Обновляем высоту текущего узла
+    node->height = 1 + avl_max(avl_height(node->left), avl_height(node->right));
+
+    // Получаем баланс узла
+    int balance = avl_get_balance(node);
+
+    // Балансировка дерева
+    if (balance > 1 && data < node->left->data) // Лево-левый случай
+        return avl_right_rotate(node);
+
+    if (balance < -1 && data > node->right->data) // Право-правый случай
+        return avl_left_rotate(node);
+
+    if (balance > 1 && data > node->left->data) { // Лево-правый случай
+        node->left = avl_left_rotate(node->left);
+        return avl_right_rotate(node);
+    }
+
+    if (balance < -1 && data < node->right->data) { // Право-левый случай
+        node->right = avl_right_rotate(node->right);
+        return avl_left_rotate(node);
+    }
+
+    return node; // Возвращаем неизмененный узел
+}
+
+// Поиск узла с минимальным значением в дереве
+Avl_Node *min_value_node(Avl_Node *node) {
+    Avl_Node *current = node;
+    while (current->left != NULL)
+        current = current->left;
+    return current;
+}
+
+// Удаление узла из AVL дерева
+Avl_Node *avl_delete_node(Avl_Node *root, int data) {
+    if (root == NULL)
+        return root;
+
+    // Рекурсивное удаление
+    if (data < root->data)
+        root->left = avl_delete_node(root->left, data);
+    else if (data > root->data)
+        root->right = avl_delete_node(root->right, data);
+    else {
+        // Узел с одним или без потомков
+        if ((root->left == NULL) || (root->right == NULL)) {
+            Avl_Node *temp = root->left ? root->left : root->right;
+
+            if (temp == NULL) { // Нет потомков
+                temp = root;
+                root = NULL;
+            } else // Один потомок
+                *root = *temp;
+            free(temp);
+        } else {
+            // Узел с двумя потомками
+            Avl_Node *temp = min_value_node(root->right);
+            root->data = temp->data;
+            root->right = avl_delete_node(root->right, temp->data);
+        }
+    }
+
+    if (root == NULL)
+        return root;
+
+    // Обновляем высоту текущего узла
+    root->height = 1 + avl_max(avl_height(root->left), avl_height(root->right));
+
+    // Получаем баланс узла
+    int balance = avl_get_balance(root);
+
+    // Балансировка дерева
+    if (balance > 1 && avl_get_balance(root->left) >= 0) // Лево-левый случай
+        return avl_right_rotate(root);
+
+    if (balance > 1 && avl_get_balance(root->left) < 0) { // Лево-правый случай
+        root->left = avl_left_rotate(root->left);
+        return avl_right_rotate(root);
+    }
+
+    if (balance < -1 && avl_get_balance(root->right) <= 0) // Право-правый случай
+        return avl_left_rotate(root);
+
+    if (balance < -1 && avl_get_balance(root->right) > 0) { // Право-левый случай
+        root->right = avl_right_rotate(root->right);
+        return avl_left_rotate(root);
+    }
+
+    return root;
+}
+
+// Поиск узла в дереве
+Avl_Node *avl_search(Avl_Node *root, int data) {
+    if (root == NULL || root->data == data)
+        return root;
+
+    if (root->data < data)
+        return avl_search(root->right, data);
+
+    return avl_search(root->left, data);
+}
+
+void avl_print_tree(Avl_Node *root, int ind) {
+    if (root != NULL) {
+        char* indent_str = (char*)malloc(sizeof(char) * ind + 1);
+        for (unsigned int i = 0; i < ind; ++i) {
+            indent_str[i] = ' ';
+        }
+        indent_str[ind] = '\0';
+        
+        avl_print_tree(root->left, ind + 4);
+        printf("%s%d\n", indent_str, root->data);
+        avl_print_tree(root->right, ind + 4);
+
+        free(indent_str);
+    }
+}
+#ifndef BRTREE_H
+#define BRTREE_H
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Перечисление для цвета узла
+typedef enum { BRT_RED, BRT_BLACK } BRT_COLOR;
+
+// Структура узла красно-черного дерева
+typedef struct Brt_Node {
+    int data;                // Значение узла
+    BRT_COLOR color;        // Цвет узла
+    struct Brt_Node *left;  // Левый потомок
+    struct Brt_Node *right; // Правый потомок
+    struct Brt_Node *parent; // Родительский узел
+} Brt_Node;
+
+Brt_Node* brt_create_node(int data);
+
+void brt_insert(Brt_Node** root, int data);
+void brt_delete_by_data(Brt_Node** root, int data);
+Brt_Node* brt_search(Brt_Node* root, int data);
+
+void brt_print_tree(Brt_Node *root, int ind);
+
+#endif // BRTREE_H
+#include "./brt.h"
+
+// Создание нового узла
+Brt_Node* brt_create_node(int data) {
+    Brt_Node* node = (Brt_Node*)malloc(sizeof(Brt_Node));
+    node->data = data;
+    node->color = BRT_RED; // Новый узел всегда красный
+    node->left = node->right = node->parent = NULL;
+    return node;
+}
+
+// Возвращает указатель на дядю (брата родителя)
+Brt_Node* brt_uncle(Brt_Node* node) {
+    if (node->parent == NULL || node->parent->parent == NULL)
+        return NULL; // Если нет родителя или дедушки, дядя отсутствует
+
+    if (node->parent == node->parent->parent->left)
+        return node->parent->parent->right; // Дядя справа
+    else
+        return node->parent->parent->left;  // Дядя слева
+}
+
+// Проверяет, является ли узел левым потомком своего родителя
+int brt_is_on_left(Brt_Node* node) {
+    return node == node->parent->left;
+}
+
+// Возвращает указатель на брата (сиблинга)
+Brt_Node* brt_sibling(Brt_Node* node) {
+    if (node->parent == NULL)
+        return NULL; // Если нет родителя, брата нет
+
+    if (brt_is_on_left(node))
+        return node->parent->right; // Брат справа
+    else
+        return node->parent->left;  // Брат слева
+}
+
+// Перемещает узел вниз и заменяет его новым родителем
+void brt_move_down(Brt_Node* node, Brt_Node* new_parent) {
+    if (node->parent != NULL) {
+        if (brt_is_on_left(node))
+            node->parent->left = new_parent;
+        else
+            node->parent->right = new_parent;
+    }
+    new_parent->parent = node->parent;
+    node->parent = new_parent;
+}
+
+// Проверяет, есть ли у узла красный потомок
+int brt_has_red_child(Brt_Node* node) {
+    return (node->left != NULL && node->left->color == BRT_RED) ||
+           (node->right != NULL && node->right->color == BRT_RED);
+}
+
+// Левый поворот
+void brt_left_rotate(Brt_Node** root, Brt_Node* x) {
+    Brt_Node* new_parent = x->right;
+
+    if (x == *root)
+        *root = new_parent;
+
+    brt_move_down(x, new_parent);
+
+    x->right = new_parent->left;
+    if (new_parent->left != NULL)
+        new_parent->left->parent = x;
+
+    new_parent->left = x;
+}
+
+// Правый поворот
+void brt_right_rotate(Brt_Node** root, Brt_Node* x) {
+    Brt_Node* new_parent = x->left;
+
+    if (x == *root)
+        *root = new_parent;
+
+    brt_move_down(x, new_parent);
+
+    x->left = new_parent->right;
+    if (new_parent->right != NULL)
+        new_parent->right->parent = x;
+
+    new_parent->right = x;
+}
+
+// Обмен цветами между двумя узлами
+void brt_swap_colors(Brt_Node* x1, Brt_Node* x2) {
+    BRT_COLOR temp = x1->color;
+    x1->color = x2->color;
+    x2->color = temp;
+}
+
+// Обмен значениями между двумя узлами
+void brt_swap_dataues(Brt_Node* u, Brt_Node* v) {
+    int temp = u->data;
+    u->data = v->data;
+    v->data = temp;
+}
+
+// Восстановление свойств красно-черного дерева после вставки
+void brt_fix_red(Brt_Node** root, Brt_Node* x) {
+    if (x == *root) {
+        x->color = BRT_BLACK;
+        return;
+    }
+
+    Brt_Node* parent = x->parent;
+    Brt_Node* grandparent = parent->parent;
+    Brt_Node* uncle_node = brt_uncle(x);
+
+    if (parent->color != BRT_BLACK) {
+        if (uncle_node != NULL && uncle_node->color == BRT_RED) {
+            parent->color = BRT_BLACK;
+            uncle_node->color = BRT_BLACK;
+            grandparent->color = BRT_RED;
+            brt_fix_red(root, grandparent);
+        } else {
+            if (brt_is_on_left(parent)) {
+                if (brt_is_on_left(x)) {
+                    brt_swap_colors(parent, grandparent);
+                } else {
+                    brt_left_rotate(root, parent);
+                    brt_swap_colors(x, grandparent);
+                }
+                brt_right_rotate(root, grandparent);
+            } else {
+                if (brt_is_on_left(x)) {
+                    brt_right_rotate(root, parent);
+                    brt_swap_colors(x, grandparent);
+                } else {
+                    brt_swap_colors(parent, grandparent);
+                }
+                brt_left_rotate(root, grandparent);
+            }
+        }
+    }
+}
+
+// Поиск узла с минимальным значением в поддереве
+Brt_Node* brt_successor(Brt_Node* x) {
+    Brt_Node* temp = x;
+    while (temp->left != NULL)
+        temp = temp->left;
+    return temp;
+}
+
+// Поиск узла, который заменит удаляемый узел
+Brt_Node* brt_replace(Brt_Node* x) {
+    if (x->left != NULL && x->right != NULL)
+        return brt_successor(x->right);
+
+    if (x->left == NULL && x->right == NULL)
+        return NULL;
+
+    if (x->left != NULL)
+        return x->left;
+    else
+        return x->right;
+}
+
+// Удаление узла
+void brt_delete_node(Brt_Node** root, Brt_Node* v) {
+    Brt_Node* u = brt_replace(v);
+    int uvBlack = ((u == NULL || u->color == BRT_BLACK) && (v->color == BRT_BLACK));
+    Brt_Node* parent = v->parent;
+
+    if (u == NULL) {
+        if (v == *root) {
+            *root = NULL;
+        } else {
+            if (uvBlack) {
+                // Исправление двойного черного
+            } else {
+                if (brt_sibling(v) != NULL)
+                    brt_sibling(v)->color = BRT_RED;
+            }
+
+            if (brt_is_on_left(v)) {
+                parent->left = NULL;
+            } else {
+                parent->right = NULL;
+            }
+        }
+        free(v);
+        return;
+    }
+
+    if (v->left == NULL || v->right == NULL) {
+        if (v == *root) {
+            v->data = u->data;
+            v->left = v->right = NULL;
+            free(u);
+        } else {
+            if (brt_is_on_left(v)) {
+                parent->left = u;
+            } else {
+                parent->right = u;
+            }
+            free(v);
+            u->parent = parent;
+            if (uvBlack) {
+                // Исправление двойного черного
+            } else {
+                u->color = BRT_BLACK;
+            }
+        }
+        return;
+    }
+
+    brt_swap_dataues(u, v);
+    brt_delete_node(root, u);
+}
+
+Brt_Node* brt_search(Brt_Node* root, int data) {
+    if (root == NULL || root->data == data)
+        return root;
+
+    if (root->data < data)
+        return brt_search(root->right, data);
+
+    return brt_search(root->left, data);
+}
+
+// Поиск узла по значению
+Brt_Node* brt_search_last(Brt_Node* root, int data) {
+    Brt_Node* temp = root;
+    while (temp != NULL) {
+        if (data < temp->data) {
+            if (temp->left == NULL)
+                break;
+            else
+                temp = temp->left;
+        } else if (data == temp->data) {
+            break;
+        } else {
+            if (temp->right == NULL)
+                break;
+            else
+                temp = temp->right;
+        }
+    }
+    return temp;
+}
+
+
+// Вставка значения в дерево
+void brt_insert(Brt_Node** root, int data) {
+    Brt_Node* new_node = brt_create_node(data);
+    if (*root == NULL) {
+        new_node->color = BRT_BLACK;
+        *root = new_node;
+    } else {
+        Brt_Node* temp = brt_search_last(*root, data);
+
+        if (temp->data == data) {
+            return; // Значение уже существует
+        }
+
+        new_node->parent = temp;
+
+        if (data < temp->data)
+            temp->left = new_node;
+        else
+            temp->right = new_node;
+
+        brt_fix_red(root, new_node);
+    }
+}
+
+// Удаление значения из дерева
+void brt_delete_by_data(Brt_Node** root, int data) {
+    if (*root == NULL)
+        return;
+
+    Brt_Node* v = brt_search_last(*root, data);
+
+    if (v->data != data) {
+        return;
+    }
+
+    brt_delete_node(root, v);
+}
+
+// Обход дерева в порядке in-order
+void brt_inorder(Brt_Node* root) {
+    if (root == NULL)
+        return;
+    brt_inorder(root->left);
+    printf("%d ", root->data);
+    brt_inorder(root->right);
+}
+
+void brt_print_tree(Brt_Node *root, int ind) {
+    if (root != NULL) {
+        char* indent_str = (char*)malloc(sizeof(char) * ind + 1);
+        for (unsigned int i = 0; i < ind; ++i) {
+            indent_str[i] = ' ';
+        }
+        indent_str[ind] = '\0';
+        
+        brt_print_tree(root->left, ind + 4);
+        printf("%s%d\n", indent_str, root->data);
+        brt_print_tree(root->right, ind + 4);
+
+        free(indent_str);
+    }
+}
+#ifndef BST_HEADER
+#define BST_HEADER
+
+#include <stdio.h>
+#include <stdlib.h>
+
+// Структура узла дерева
+typedef struct Bst_Node {
+    int data;               // Данные узла
+    struct Bst_Node *left;      // Левый потомок
+    struct Bst_Node *right;     // Правый потомок
+} Bst_Node;
+
+Bst_Node *bst_new_node(int data);
+Bst_Node *bst_min_value_node(Bst_Node *node);
+
+Bst_Node *bst_delete_node(Bst_Node *root, int data);
+Bst_Node *bst_insert(Bst_Node *root, int data);
+Bst_Node *bst_search(Bst_Node *root, int data);
+
+void bst_print_tree(Bst_Node *root, int ind);
+
+#endif
+#include "./bst.h"
+
+// Создание нового узла
+Bst_Node *bst_new_node(int data) {
+    Bst_Node *node = (Bst_Node *)malloc(sizeof(Bst_Node));
+    node->data = data;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
+}
+
+// Вставка узла в дерево
+Bst_Node *bst_insert(Bst_Node *root, int data) {
+    if (root == NULL)
+        return bst_new_node(data);
+
+    if (data < root->data)
+        root->left = bst_insert(root->left, data);
+    else if (data > root->data)
+        root->right = bst_insert(root->right, data);
+
+    return root;
+}
+
+// Поиск узла с минимальным значением
+Bst_Node *bst_min_value_node(Bst_Node *node) {
+    Bst_Node *current = node;
+    while (current->left != NULL)
+        current = current->left;
+    return current;
+}
+
+// Удаление узла из дерева
+Bst_Node *bst_delete_node(Bst_Node *root, int data) {
+    if (root == NULL)
+        return root;
+
+    // Рекурсивное удаление
+    if (data < root->data)
+        root->left = bst_delete_node(root->left, data);
+    else if (data > root->data)
+        root->right = bst_delete_node(root->right, data);
+    else {
+        // Узел с одним или без потомков
+        if (root->left == NULL) {
+            Bst_Node *temp = root->right;
+            free(root);
+            return temp;
+        } else if (root->right == NULL) {
+            Bst_Node *temp = root->left;
+            free(root);
+            return temp;
+        }
+
+        // Узел с двумя потомками
+        Bst_Node *temp = bst_min_value_node(root->right);
+        root->data = temp->data;
+        root->right = bst_delete_node(root->right, temp->data);
+    }
+    return root;
+}
+
+// Поиск узла в дереве
+Bst_Node *bst_search(Bst_Node *root, int data) {
+    if (root == NULL || root->data == data)
+        return root;
+
+    if (root->data < data)
+        return bst_search(root->right, data);
+
+    return bst_search(root->left, data);
+}
+
+void bst_print_tree(Bst_Node *root, int ind) {
+    if (root != NULL) {
+        char* indent_str = (char*)malloc(sizeof(char) * ind + 1);
+        for (unsigned int i = 0; i < ind; ++i) {
+            indent_str[i] = ' ';
+        }
+        indent_str[ind] = '\0';
+        
+        bst_print_tree(root->left, ind + 4);
+        printf("%s%d\n", indent_str, root->data);
+        bst_print_tree(root->right, ind + 4);
+
+        free(indent_str);
+    }
+}
+#ifndef TEST_HEADER
+#define TEST_HEADER
+
+#include "./bst.h"
+#include "./avl.h"
+#include "./brt.h"
+
+void fprint_elapsed_time(FILE *d, char *prefix, long int sec, long int usec);
+
+void bst_insert_test(FILE *d, Bst_Node *root, int *arr, size_t s);
+void bst_search_test(FILE *d, Bst_Node *root, int *arr, size_t s);
+void bst_delete_test(FILE *d, Bst_Node *root, int *arr, size_t s);
+
+void avl_insert_test(FILE *d, Avl_Node *root, int *arr, size_t s);
+void avl_search_test(FILE *d, Avl_Node *root, int *arr, size_t s);
+void avl_delete_test(FILE *d, Avl_Node *root, int *arr, size_t s);
+
+void brt_insert_test(FILE *d, Brt_Node **root, int *arr, size_t s);
+void brt_search_test(FILE *d, Brt_Node **root, int *arr, size_t s);
+void brt_delete_test(FILE *d, Brt_Node **root, int *arr, size_t s);
+    
+#endif
+#include "./test.h"
+
+#include <sys/time.h>
+
+void fprint_elapsed_time(FILE *d, char* prefix, long int sec, long int usec) {
+    fprintf(d, "%s %ld.%06ld\n", prefix, sec, usec);
+}
+
+void bst_insert_test(FILE *d, Bst_Node *root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        root = bst_insert(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void bst_search_test(FILE *d, Bst_Node *root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        bst_search(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void bst_delete_test(FILE *d, Bst_Node *root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = s; i > -1; --i) {
+        root = bst_delete_node(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+
+void avl_insert_test(FILE *d, Avl_Node *root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        root = avl_insert(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void avl_search_test(FILE *d, Avl_Node *root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        avl_search(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void avl_delete_test(FILE *d, Avl_Node *root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        root = avl_delete_node(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void brt_insert_test(FILE *d, Brt_Node **root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        brt_insert(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void brt_search_test(FILE *d, Brt_Node **root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        brt_search(*root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+
+void brt_delete_test(FILE *d, Brt_Node **root, int *arr, size_t s) {
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    for (int i = 0; i < s; ++i) {
+        brt_delete_by_data(root, arr[i]);
+    }
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    
+    fprint_elapsed_time(d, "", (long int)tval_result.tv_sec, (long int)tval_result.tv_usec);
+}
+#include <stdbool.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "./test.h"
+
+struct Root {
+    Bst_Node *bst;
+    Avl_Node *avl;
+    Brt_Node *brt;
+};
+
+FILE *open_file_for_writing(const char* filename) {
+    FILE *fd = fopen(filename, "w");
+    
+    if (!fd) {
+        perror("FATAL: файл не удалось открыть");
+        exit(-1);
+    }
+
+    return fd;
+}
+
+int *generate_arr(size_t s, int range) {
+    int* arr = (int*)malloc(sizeof(int) * s);
+    if (!arr) {
+        perror("FATAL: массив не сгенерирован");
+        exit(-1);
+    }
+    
+    for (int i = 0; i < s; ++i) {
+        arr[i] = rand() % range;
+    }
+
+    return arr;
+}
+
+// Арифметическая програессия
+int *iota_arr(size_t s, size_t initial_range, size_t common_diff) {
+    int* arr = (int*)malloc(sizeof(int) * s);
+    if (!arr) {
+        perror("FATAL: массив не сгенерирован");
+        exit(-1);
+    }
+
+    int initial_val = rand() % initial_range;
+    int temper = initial_val;
+    for (int i = 0; i < s; ++i) {
+        arr[i] = temper;
+        temper += common_diff;
+    }
+
+    return arr;
+}
+
+void print_help(const char *prog_name) {
+    printf("Использование %s [НАСТРОЙКИ] [ДЕРЕВО] [МЕТОД] [ВЫВОД]\n", prog_name);
+    printf("\nВывод:");
+    printf("\n\tstdout - записать в консольный вывод");
+    printf("\n\t\"any string\" - выводит файл с подобным именем");
+    printf("\nНастройки:");
+    printf("\n\t--arr-size=ARRAY-SIZE - указывает размер массива, размер должен быть положительным числом");
+    printf("\n\t--rand-range=RANDOM-RANGE - указывает диапазон случайных числа от 0 до (RANDOM-RANGE - 1), диапазон должен быть положительным числом");
+    printf("\n\t--test-count=COUNT - указывает сколько должно быть проведено тестов, количество должено быть положительным числом");
+    printf("\n\t--type-test={iota, rand} - указывает тип проводимого теста (enum).");
+    printf("\n\t\tiota - массив сгенерированный арифметической прогрессией, rand - массив сгенерированный при помощи функции rand()");
+    printf("\nДоступные деревья:");
+    printf("\n\tbst - бинарное дерево поиска");
+    printf("\n\tavl - АВЛ дерево");
+    printf("\n\tbrt - Чёрно-красное дерево");
+    printf("\nДоступные методы:");
+    printf("\n\tinsert");
+    printf("\n\tsearch");
+    printf("\n\tdelete");
+    
+    printf("\n");
+}
+
+void bst_case(const char *method, Bst_Node *root, FILE *d, int *arr, size_t arr_size) {
+    if (strcmp(method, "insert") == 0) {
+        bst_insert_test(d, root, arr, arr_size);
+    } else if (strcmp(method, "search") == 0) {
+        for (int i = 0; i < arr_size; ++i) {
+            root = bst_insert(root, arr[i]);
+        }
+        
+        bst_search_test(d, root, arr, arr_size);
+    } else if (strcmp(method, "delete") == 0) {
+        for (int i = 0; i < arr_size; ++i) {
+            root = bst_insert(root, arr[i]);
+        }
+        
+        bst_delete_test(d, root, arr, arr_size);
+    }
+}
+
+void avl_case(const char *method, Avl_Node *root, FILE *d, int *arr, size_t arr_size) {
+    if (strcmp(method, "insert") == 0) {
+        avl_insert_test(d, root, arr, arr_size);
+    } else if (strcmp(method, "search") == 0) {
+        for (int i = 0; i < arr_size; ++i) {
+            root = avl_insert(root, arr[i]);
+        }
+        
+        avl_search_test(d, root, arr, arr_size);
+    } else if (strcmp(method, "delete") == 0) {
+        for (int i = 0; i < arr_size; ++i) {
+            root = avl_insert(root, arr[i]);
+        }
+        
+        avl_delete_test(d, root, arr, arr_size);
+    }
+}
+
+void brt_case(const char *method, Brt_Node *root, FILE *d, int *arr, size_t arr_size) {
+    if (strcmp(method, "insert") == 0) {
+        brt_insert_test(d, &root, arr, arr_size);
+    } else if (strcmp(method, "search") == 0) {
+        for (int i = 0; i < arr_size; ++i) {
+            brt_insert(&root, arr[i]);
+        }
+        
+        brt_search_test(d, &root, arr, arr_size);
+    } else if (strcmp(method, "delete") == 0) {
+        for (int i = 0; i < arr_size; ++i) {
+            brt_insert(&root, arr[i]);
+        }
+        
+        brt_delete_test(d, &root, arr, arr_size);
+    }
+}
+
+void proceed_cases(const char *tree, const char *method, struct Root *root, FILE *d, int *arr, size_t arr_size) {
+    if (strcmp(tree, "bst") == 0) {
+        bst_case(method, root->bst, d, arr, arr_size);
+    } else if (strcmp(tree, "avl") == 0) {
+        avl_case(method, root->avl, d, arr, arr_size);
+    } else if (strcmp(tree, "brt") == 0) {
+        brt_case(method, root->brt, d, arr, arr_size);
+    }    
+}
+
+void execute_standart_case(const char *tree, const char *method, const char *type, FILE *d, size_t arr_size, size_t rand_range) {
+    struct Root root = {0};
+
+    srand(time(NULL));
+    
+    int *arr;
+    if (strcmp(type, "iota") == 0) {
+        arr = iota_arr(arr_size, rand_range, 10);
+    } else {
+        arr = generate_arr(arr_size, rand_range);
+    }
+
+    proceed_cases(tree, method, &root, d, arr, arr_size);
+    
+    free(arr);
+}
+
+void execute(const char *tree, const char *method, const char *output, const char *type, size_t arr_size, size_t rand_range, size_t test_count) {
+    FILE *file;
+    if (strcmp(output, "stdout") == 0) {
+        file = stdout;
+    } else {
+        file = open_file_for_writing(output);
+    }
+
+    for (int i = 0; i < test_count; ++i) {
+        execute_standart_case(tree, method, type, file, arr_size, rand_range);
+    }
+
+    fclose(file);
+}
+
+enum {
+    ARR_SIZE = 0,
+    RAND_RANGE,
+    TEST_COUNT,
+    TYPE_TEST,
+} typedef option;
+
+bool check_valid(const char *opt, char **arg, option *opt_enum, bool *is_num) {
+    size_t len = strlen(opt);
+    if (len < 2) {
+        perror("FATAL: ошибка аргумента");
+        exit(-1);
+    }
+
+    *arg = (char*)malloc(sizeof(char) * 255);
+    char param[255] = {0}; char offs_param = 0, offs_arg = 0;
+    for (int i = 0; i < len; ++i) {
+        char c = opt[i];
+        switch (c) {
+        case '-':
+            continue;
+        case '=':
+            for (int j = i + 1; j < len; ++j)
+                (*arg)[offs_arg++] = opt[j];
+            goto end_for;
+        default:
+            param[offs_param++] = c;
+        }
+    }
+  end_for:
+
+    param[offs_param] = '\0';
+    (*arg)[offs_arg] = '\0';
+
+    if (strcmp(param, "arrsize") == 0) {
+        *opt_enum = ARR_SIZE;
+        *is_num = true;
+        return true;
+    } else if (strcmp(param, "randrange") == 0) {
+        *opt_enum = RAND_RANGE;
+        *is_num = true;
+        return true;
+    } else if (strcmp(param, "testcount") == 0) {
+        *opt_enum = TEST_COUNT;
+        *is_num = true;
+        return true;
+    } else if (strcmp(param, "typetest") == 0) {
+        *opt_enum = TYPE_TEST;
+        *is_num = false;
+        return true;
+    }
+
+    return false;
+}
+
+struct optional {
+    int val;
+    char *str;
+    bool exist;
+} typedef opt_t;
+
+void parse_argv(int argc, const char **argv) {
+    opt_t arr_size = {0}, rand_range = {0}, test_count = {0}, type_test = {0};
+    
+    for (int i = 1; i < argc - 3; ++i) {
+        char *arg; bool is_num; option opt;
+        if (check_valid(argv[i], &arg, &opt, &is_num)) {
+            switch (opt) {
+            case ARR_SIZE:
+                arr_size.val = atoi(arg);
+                arr_size.exist = true;
+                break;
+            case RAND_RANGE:
+                rand_range.val = atoi(arg);
+                rand_range.exist = true;
+                break;
+            case TEST_COUNT:
+                test_count.val = atoi(arg);
+                test_count.exist = true;
+                break;
+            case TYPE_TEST:
+                type_test.str = arg;
+                type_test.exist = true;
+                break;
+            }
+        } else {
+            perror("FATAL: неверный аргумент");
+            exit(-1);
+        }
+    }
+
+    if (type_test.exist && (strcmp(type_test.str, "iota") != 0) && (strcmp(type_test.str, "rand") != 0)) {
+        perror("FATAL: неверное предоставленный enum для type-test");
+        exit(-1);
+    }
+    
+    if ((arr_size.exist && arr_size.val <= 0)
+        || (rand_range.exist && rand_range.val <= 0)
+        || (test_count.exist && test_count.val <= 0)) {
+        perror("FATAL: было передано отрицательное число либо значение не является числом");
+        exit(-1);
+    }
+    
+    execute(argv[argc - 3], argv[argc - 2], argv[argc - 1]
+            , type_test.exist ? type_test.str : "iota", arr_size.exist ? arr_size.val : 15000
+            , rand_range.exist ? rand_range.val : 2000, test_count.exist ? test_count.val : 100);
+}
+
+int main(int argc, const char **argv) {
+    if (argc == 4) {
+        execute(argv[1], argv[2], argv[3], "iota", 15000, 1000, 100);
+        return 0;
+    } else if (argc > 4) {
+        parse_argv(argc, argv);
+        return 0;
+    }
+ 
+    print_help(argv[0]);
+    
+    return 0;
+}

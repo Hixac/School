@@ -101,7 +101,7 @@ void brt_swap_dataues(Brt_Node* u, Brt_Node* v) {
 }
 
 // Восстановление свойств красно-черного дерева после вставки
-void brt_fix_red_red(Brt_Node** root, Brt_Node* x) {
+void brt_fix_red(Brt_Node** root, Brt_Node* x) {
     if (x == *root) {
         x->color = BRT_BLACK;
         return;
@@ -116,7 +116,7 @@ void brt_fix_red_red(Brt_Node** root, Brt_Node* x) {
             parent->color = BRT_BLACK;
             uncle_node->color = BRT_BLACK;
             grandparent->color = BRT_RED;
-            brt_fix_red_red(root, grandparent);
+            brt_fix_red(root, grandparent);
         } else {
             if (brt_is_on_left(parent)) {
                 if (brt_is_on_left(x)) {
@@ -148,7 +148,7 @@ Brt_Node* brt_successor(Brt_Node* x) {
 }
 
 // Поиск узла, который заменит удаляемый узел
-Brt_Node* brt_bst_replace(Brt_Node* x) {
+Brt_Node* brt_replace(Brt_Node* x) {
     if (x->left != NULL && x->right != NULL)
         return brt_successor(x->right);
 
@@ -163,7 +163,7 @@ Brt_Node* brt_bst_replace(Brt_Node* x) {
 
 // Удаление узла
 void brt_delete_node(Brt_Node** root, Brt_Node* v) {
-    Brt_Node* u = brt_bst_replace(v);
+    Brt_Node* u = brt_replace(v);
     int uvBlack = ((u == NULL || u->color == BRT_BLACK) && (v->color == BRT_BLACK));
     Brt_Node* parent = v->parent;
 
@@ -214,8 +214,18 @@ void brt_delete_node(Brt_Node** root, Brt_Node* v) {
     brt_delete_node(root, u);
 }
 
-// Поиск узла по значению
 Brt_Node* brt_search(Brt_Node* root, int data) {
+    if (root == NULL || root->data == data)
+        return root;
+
+    if (root->data < data)
+        return brt_search(root->right, data);
+
+    return brt_search(root->left, data);
+}
+
+// Поиск узла по значению
+Brt_Node* brt_search_last(Brt_Node* root, int data) {
     Brt_Node* temp = root;
     while (temp != NULL) {
         if (data < temp->data) {
@@ -235,6 +245,7 @@ Brt_Node* brt_search(Brt_Node* root, int data) {
     return temp;
 }
 
+
 // Вставка значения в дерево
 void brt_insert(Brt_Node** root, int data) {
     Brt_Node* new_node = brt_create_node(data);
@@ -242,7 +253,7 @@ void brt_insert(Brt_Node** root, int data) {
         new_node->color = BRT_BLACK;
         *root = new_node;
     } else {
-        Brt_Node* temp = brt_search(*root, data);
+        Brt_Node* temp = brt_search_last(*root, data);
 
         if (temp->data == data) {
             return; // Значение уже существует
@@ -255,7 +266,7 @@ void brt_insert(Brt_Node** root, int data) {
         else
             temp->right = new_node;
 
-        brt_fix_red_red(root, new_node);
+        brt_fix_red(root, new_node);
     }
 }
 
@@ -264,7 +275,7 @@ void brt_delete_by_data(Brt_Node** root, int data) {
     if (*root == NULL)
         return;
 
-    Brt_Node* v = brt_search(*root, data);
+    Brt_Node* v = brt_search_last(*root, data);
 
     if (v->data != data) {
         return;
@@ -281,28 +292,6 @@ void brt_inorder(Brt_Node* root) {
     printf("%d ", root->data);
     brt_inorder(root->right);
 }
-
-// Обход дерева в порядке level-order
-void brt_level_order(Brt_Node* root) {
-    if (root == NULL)
-        return;
-
-    Brt_Node* queue[100];
-    int front = 0, rear = 0;
-    queue[rear++] = root;
-
-    while (front < rear) {
-        Brt_Node* temp = queue[front++];
-        printf("%d ", temp->data);
-
-        if (temp->left != NULL)
-            queue[rear++] = temp->left;
-
-        if (temp->right != NULL)
-            queue[rear++] = temp->right;
-    }
-}
-
 
 void brt_print_tree(Brt_Node *root, int ind) {
     if (root != NULL) {

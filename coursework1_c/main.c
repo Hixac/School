@@ -24,7 +24,7 @@ FILE *open_file_for_writing(const char* filename) {
     return fd;
 }
 
-int* generate_arr(size_t s, int range) {
+int *generate_arr(size_t s, int range) {
     int* arr = (int*)malloc(sizeof(int) * s);
     if (!arr) {
         perror("FATAL: массив не сгенерирован");
@@ -39,7 +39,7 @@ int* generate_arr(size_t s, int range) {
 }
 
 // Арифметическая програессия
-int* iota_arr(size_t s, size_t initial_range, size_t common_diff) {
+int *iota_arr(size_t s, size_t initial_range, size_t common_diff) {
     int* arr = (int*)malloc(sizeof(int) * s);
     if (!arr) {
         perror("FATAL: массив не сгенерирован");
@@ -57,21 +57,21 @@ int* iota_arr(size_t s, size_t initial_range, size_t common_diff) {
 }
 
 void print_help(const char *prog_name) {
-    printf("Usage %s [OPTION] [TREE NAME] [METHOD] [OUTPUT NAME]\n", prog_name);
-    printf("\nOutput name:");
-    printf("\n\tstdout - write to console buffer");
-    printf("\n\t\"any string\" - outputs file with that name");
-    printf("\nOptions:");
-    printf("\n\t--arr-size=ARRAY-SIZE - specifies array size, size must be positive number");
-    printf("\n\t--rand-range=RANDOM-RANGE - specifies random range from 0 to (RANDOM-RANGE - 1), range must be positive number");
-    printf("\n\t--test-count=COUNT - specifies how much test must be proceed, count must be positive number");
-    printf("\n\t--type-test={iota, rand} - specifies test type (enum).");
-    printf("\n\t\tiota - arithmetic sequencce array, rand - array generated using rand()");
-    printf("\nAvailable tree names:");
-    printf("\n\tbst - binary search tree");
-    printf("\n\tavl - AVL tree");
-    printf("\n\tbrt - Black-red tree");
-    printf("\nAvailable methods:");
+    printf("Использование %s [НАСТРОЙКИ] [ДЕРЕВО] [МЕТОД] [ВЫВОД]\n", prog_name);
+    printf("\nВывод:");
+    printf("\n\tstdout - записать в консольный вывод");
+    printf("\n\t\"any string\" - выводит файл с подобным именем");
+    printf("\nНастройки:");
+    printf("\n\t--arr-size=ARRAY-SIZE - указывает размер массива, размер должен быть положительным числом");
+    printf("\n\t--rand-range=RANDOM-RANGE - указывает диапазон случайных числа от 0 до (RANDOM-RANGE - 1), диапазон должен быть положительным числом");
+    printf("\n\t--test-count=COUNT - указывает сколько должно быть проведено тестов, количество должено быть положительным числом");
+    printf("\n\t--type-test={iota, rand} - указывает тип проводимого теста (enum).");
+    printf("\n\t\tiota - массив сгенерированный арифметической прогрессией, rand - массив сгенерированный при помощи функции rand()");
+    printf("\nДоступные деревья:");
+    printf("\n\tbst - бинарное дерево поиска");
+    printf("\n\tavl - АВЛ дерево");
+    printf("\n\tbrt - Чёрно-красное дерево");
+    printf("\nДоступные методы:");
     printf("\n\tinsert");
     printf("\n\tsearch");
     printf("\n\tdelete");
@@ -222,12 +222,6 @@ bool check_valid(const char *opt, char **arg, option *opt_enum, bool *is_num) {
         *is_num = true;
         return true;
     } else if (strcmp(param, "typetest") == 0) {
-
-        if ((strcmp(*arg, "iota") != 0) && (strcmp(*arg, "rand") != 0)) {
-            perror("FATAL: неверное предоставленный enum для type-test");
-            exit(-1);
-        }
-        
         *opt_enum = TYPE_TEST;
         *is_num = false;
         return true;
@@ -272,6 +266,11 @@ void parse_argv(int argc, const char **argv) {
         }
     }
 
+    if (type_test.exist && (strcmp(type_test.str, "iota") != 0) && (strcmp(type_test.str, "rand") != 0)) {
+        perror("FATAL: неверное предоставленный enum для type-test");
+        exit(-1);
+    }
+    
     if ((arr_size.exist && arr_size.val <= 0)
         || (rand_range.exist && rand_range.val <= 0)
         || (test_count.exist && test_count.val <= 0)) {
