@@ -10,6 +10,10 @@ int main() {
     std::cin >> i;
     std::println();
 
+    if (i <= 0) {
+        std::println("Fatal! Given negative number of threads.");
+        std::exit(1);
+    }
     omp_set_num_threads(i);
 
 #pragma omp parallel for
