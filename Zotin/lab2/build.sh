@@ -7,7 +7,10 @@ if [[ ! "$choose" =~ ^[12]$ ]]; then
     exit 1
 fi
 
-g++ -O0 --std=c++23 -fopenmp $choose/main.cpp -o main
+CFLAGS="-O0 --std=c++23"
+LDFLAGS="-fopenmp"
+
+g++ $CFLAGS $LDFLAGS $choose/main.cpp -o main
 
 read -p "Запустить? (y/n) " run
 
