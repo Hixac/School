@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <vector>
+#include <array>
 #include <string.h>
 #include <functional>
 #include <math.h>
@@ -17,22 +18,6 @@ double AvgTrustedIntervalMED(double*& times, int cnt);
 double MeasureFTime(std::function<double()> func, int expCNT);
 
 ////////////////////////////////////////////////////////////////
-// Функции заполнения массивов последовательный и параллельный варианты
-double Fillarr_posl(double* arr1, double* arr2, int size);
-double Fillarr_par_for(double* arr1, double* arr2, int size); 
-// Функции Сложения массивов последовательный и два параллельных варианта
-double SumArrays_posl(double* arr_in1, double* arr_in2, double* arr_res, int size);
-double SumArrays_par_for(double* arr_in1, double* arr_in2, double* arr_res, int size);
-double SumArrays_par_section(double* arr_in1, double* arr_in2, double* arr_res, int size);
-// Функции СлПолучение суммы элементов массива последовательный и два параллельных варианта
-double ElArrSum_posl(double* arr, int size, double& sum);
-double ElArrSum_par_for_reduction(double* arr, int size, double& sum);
-double ElArrSum_par_for_crit_sec(double* arr, int size, double& sum);
-
-
-////////////////////////////////////////////////////////////////
-// Механизмы для рассчета времени в доверительном интервале на основе медианного значения
-#pragma region TimeMeasure
 
 ////////////////////////////////////////////////////////////////
 // Функция сортировки массива(сортировка пузырьком)
@@ -109,143 +94,11 @@ double MeasureFTime(std::function<double()> func, int expCNT)
         std::cout << "+";
     }
     std::cout << std::endl;
-    // Определение значение ссреднего времени в доверительном интервале
+    // Определение значение среднего времени в доверительном интервале
     double avg_time = AvgTrustedIntervalMED(times, expCNT);
     delete[] times;
     return avg_time;
 }
-
-#pragma endregion
-
-
-// Реализация функций по работе с массивами
-#pragma region ArrayWorkFunction
-double Fillarr_posl(double* arr1, double* arr2, int size)
-{
-    double t_start = omp_get_wtime();
-    for (int i = 0; i < size; i++)
-    {
-        arr1[i] = (std::cos((i - 1.5) / 2.0));
-        arr2[i] = (std::sin(i * 2.5 / 3.0));
-    }
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double Fillarr_par_for(double* arr1, double* arr2, int size)
-{
-    double t_start = omp_get_wtime();
-#pragma omp parallel for
-    for (int i = 0; i < size; i++)
-    {
-        arr1[i] = (std::cos((i - 1.5) / 2.0));
-        arr2[i] = (std::sin(i * 2 / 3.0));
-    }
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double SumArrays_posl(double* arr_in1, double* arr_in2, double* arr_res, int size)
-{
-    double t_start = omp_get_wtime();
-    for (int i = 0; i < size; i++)
-        arr_res[i] = arr_in1[i] + arr_in2[i];
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double SumArrays_par_for(double* arr_in1, double* arr_in2, double* arr_res, int size)
-{
-    double t_start = omp_get_wtime();
-#pragma omp parallel for
-    for (int i = 0; i < size; i++)
-        arr_res[i] = arr_in1[i] + arr_in2[i];
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double SumArrays_par_section(double* arr_in1, double* arr_in2, double* arr_res, int size)
-{
-    double t_start = omp_get_wtime();
-    int p = omp_get_max_threads();
-    int s_0 = 0;
-    int s_1 = (1 * size) / p;
-    int s_2 = (2 * size) / p;
-    int s_3 = (3 * size) / p;
-    int s_4 = (4 * size) / p;
-#pragma omp parallel sections
-    {
-#pragma omp section
-        {
-            for (int i = s_0; i < s_1; ++i)
-                arr_res[i] = arr_in1[i] + arr_in2[i];
-        }
-#pragma omp section
-        {
-            if (p > 1) {
-                for (int i = s_1; i < s_2; ++i)
-                    arr_res[i] = arr_in1[i] + arr_in2[i];
-            }
-        }
-#pragma omp section
-        {
-            if (p > 2) {
-                for (int i = s_2; i < s_3; ++i)
-                    arr_res[i] = arr_in1[i] + arr_in2[i];
-            }
-        }
-#pragma omp section
-        {
-            if (p > 3) {
-                for (int i = s_3; i < s_4; ++i)
-                    arr_res[i] = arr_in1[i] + arr_in2[i];
-            }
-        }
-    }
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double ElArrSum_posl(double* arr, int size, double& sum)
-{
-    double temp_summ = 0;
-    double t_start = omp_get_wtime();
-    for (int i = 0; i < size; i++)
-        temp_summ += arr[i];
-    sum = temp_summ;
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double ElArrSum_par_for_reduction(double* arr, int size, double& sum)
-{
-    double temp_summ = 0;
-    double t_start = omp_get_wtime();
-#pragma omp parallel for reduction(+:temp_summ)
-    for (int i = 0; i < size; i++)
-        temp_summ += arr[i];
-    sum = temp_summ;
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-double ElArrSum_par_for_crit_sec(double* arr, int size, double& sum)
-{
-    double t_start = omp_get_wtime();
-    double temp_summ = 0;
-#pragma omp parallel for
-        for (int i = 0; i < size; i++) {
-#pragma omp critical 
-            {
-                temp_summ += arr[i];
-            }
-        }
-    sum = temp_summ;
-    double t_end = omp_get_wtime();
-    return (t_end - t_start) * 1000;
-}
-
-#pragma endregion
 
 ////////////////////////////////////////////////////////////////
 // Функция для проведения экспериментального исследования по набору данных
@@ -321,21 +174,18 @@ void test_functions(double** experiments_time, std::vector<std::string> function
     delete[] mas3;
 }
 
+// задание количества итераций для исследования
+constexpr int iteration_cnt = 300;
+constexpr int nd_count = 4; // количество наборов данных
+constexpr int funct_cnt = 8; // количество исследуемых функций
+constexpr int nd_base_size = 100000; // Начальный размер набора данных
+constexpr int nd_step = 70000; // Шаг изменения набора данных
 
 int main()
 {
-    // задание количества итераций для исследования
-    int iteration_cnt = 300;
-
-
-    std::vector<std::string> function_names = { "Заполнение массивов (Посл.)", "Заполнение массивов (Пар. 2)",
-        "Сумма массивов A и B (Посл)", "Сумма массивов A и B (Пар. For)","Сумма массивов A и B (Пар. Section)"
-            ,"Сумма элементов массива С (Посл.)","Сумма элементов массива С (Пар. Редуктор)","Сумма элементов массива С (Пар. Crit Sect)"
-            , "Предполагаемая иная функция для которой не указана реализация в тесте (Functions)" };
+    std::vector<std::string> function_names = {};
 
     // определение параметров экспериментального исследования
-    int nd_count = 4; // количество наборов данных
-    int funct_cnt = 8; // количество исследуемых функций
     double*** experiments_time = new double** [nd_count];
     for (int nd = 0; nd < nd_count; nd++)
     {
@@ -345,10 +195,6 @@ int main()
             experiments_time[nd][f] = new double[3];
         }
     }
-
-    // Определение параметров для наборов данных
-    int nd_base_size = 100000;	// Начальный размер набора данных
-    int nd_step = 70000; 		// Шаг изменения набора данных
 
     // Организация цикла перебора по набору данных
     for (int nd = 0; nd < 4; nd++)
@@ -389,15 +235,3 @@ int main()
 
     return 0;
 }
-
-
-// Запуск программы: CTRL+F5 или меню "Отладка" > "Запуск без отладки"
-// Отладка программы: F5 или меню "Отладка" > "Запустить отладку"
-
-// Советы по началу работы 
-//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
-//   2. В окне Team Explorer можно подключиться к системе управления версиями.
-//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
-//   4. В окне "Список ошибок" можно просматривать ошибки.
-//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
-//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.

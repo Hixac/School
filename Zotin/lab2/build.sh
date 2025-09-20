@@ -8,7 +8,7 @@ if [[ ! "$choose" =~ ^[12]$ ]]; then
 fi
 
 CFLAGS="-O0 --std=c++23"
-LDFLAGS="-fopenmp"
+LDFLAGS="-fopenmp -I/home/hixac/Projects/school/Zotin/"
 
 g++ $CFLAGS $LDFLAGS $choose/main.cpp -o main
 
