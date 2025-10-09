@@ -5,41 +5,40 @@
 #include <vector>
 #include <string>
 #include <stdexcept>
-
 #include <cmath>
 
-template <typename FunctionType>
 struct unit_test {
     std::string name;
-    std::function<FunctionType> func;
+    std::function<void()> func;
     unsigned int threads;
     double time;
 };
 
-template <typename FunctionType>
 class test {
     public:
         test() = default;
 
-        void add_function(std::string name, std::function<FunctionType> func, unsigned int threads = 1) {
-            if (threads == 0) 
+        template <typename function_type, typename... Args>
+        void add_function(std::string name, function_type func, unsigned int threads, Args&&... args) {
+            if (threads <= 0) 
                 throw std::invalid_argument("Negative or zero number of threads");
-            auto unit = unit_test<FunctionType> {name, func, threads, 0};
+            auto binded_func = [func, &args...]() mutable { func(std::forward<Args>(args)...); };
+            auto unit = unit_test { name, binded_func, threads, 0 };
             m_units.push_back(unit);
         }
 
         void do_tests() {
-            for (auto& unit : m_units) {
+            for (auto &unit : m_units) {
                 omp_set_num_threads(unit.threads);
                 unit.time = measure_average_time(unit);
             }
         }
 
-        const auto& get_units() { return m_units; }
+        const auto &get_units() { return m_units; }
         inline void set_iteration_count(const unsigned int new_count) { iteration_count = new_count; }
 
     private:
-        double measure_average_time(unit_test<FunctionType> &unit) {
+        double measure_average_time(unit_test &unit) {
             std::vector<double> measures;
             double average = 0, median = 0;
 
@@ -68,7 +67,7 @@ class test {
             return sd;
         }
 
-        void preliminary(unit_test<FunctionType> &unit, std::vector<double> &measures, double &average, double &median) {
+        void preliminary(unit_test &unit, std::vector<double> &measures, double &average, double &median) {
             for (int i = 0; i < iteration_count; ++i) {
                 double start_time = omp_get_wtime();
                 unit.func();
@@ -92,7 +91,7 @@ class test {
         }
 
         unsigned int iteration_count = 15;
-        std::vector<unit_test<FunctionType>> m_units;
+        std::vector<unit_test> m_units;
 };
 
 

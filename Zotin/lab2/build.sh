@@ -1,24 +1,21 @@
 #!/bin/bash
+set -e
 
-read -p "Введите номер задания (1/2) " choose
-
-if [[ ! "$choose" =~ ^[12]$ ]]; then
+if [[ ! "$1" =~ ^[12]$ ]]; then
     echo "Неверно выбранное задание"
     exit 1
 fi
 
-CFLAGS="-O0 --std=c++23"
+CFLAGS="-O0 --std=c++23 -g"
 LDFLAGS="-fopenmp -I/home/hixac/Projects/school/Zotin/"
 
-g++ $CFLAGS $LDFLAGS $choose/main.cpp -o main
+echo "Компилируется..."
+g++ $CFLAGS $LDFLAGS $1/main.cpp -o main
 
-read -p "Запустить? (y/n) " run
-
-if [[ "$run" == "y" ]]; then
-    if [ "$choose" -eq 2 ]; then
-        > info.txt
-        "./main" | tee info.txt
-    else
-        "./main"
-    fi
+echo "Запускается..."
+if [ "$1" -eq 2 ]; then
+    > info.txt
+    "./main" | tee info.txt
+else
+    "./main"
 fi

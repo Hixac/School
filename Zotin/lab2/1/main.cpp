@@ -2,15 +2,17 @@
 
 #include <omp.h>
 #include <test.hpp>
+#include <string>
+#include <format>
 
 constexpr int cores = 4 * 4;
 
 int main() {
-    
-    test<void()> pi_tests;
 
-    auto pi_seq = []() {
-        long i, num_steps = 1000000;
+    test pi_tests;
+
+    auto pi_seq = [](long num_steps) {
+        long i;
         double step, pi, x, sum = 0.0;
         step = 1.0 / (double)num_steps;
         for (int i = 0; i < num_steps; ++i) {
@@ -20,10 +22,10 @@ int main() {
         pi = step * sum;
     };
 
-    auto pi_static_threaded = []() {
+    auto pi_static_threaded = [](long num_steps) {
 #pragma omp parallel 
         {
-            long i, num_steps = 1000000;
+            long i;
             int chunk = num_steps / cores;
             double step, pi, x, sum = 0.0;
             step = 1.0 / (double)num_steps;
@@ -36,10 +38,10 @@ int main() {
         }
     };
 
-    auto pi_dynamic_threaded = []() {
+    auto pi_dynamic_threaded = [](long num_steps) {
 #pragma omp parallel 
         {
-            long i, num_steps = 1000000;
+            long i;
             int chunk = num_steps / cores;
             double step, pi, x, sum = 0.0;
             step = 1.0 / (double)num_steps;
@@ -52,10 +54,10 @@ int main() {
         }
     };
 
-    auto pi_guided_threaded = []() {
+    auto pi_guided_threaded = [](long num_steps) {
 #pragma omp parallel 
         {
-            long i, num_steps = 1000000;
+            long i;
             int chunk = num_steps / (cores * 4);
             double step, pi, x, sum = 0.0;
             step = 1.0 / (double)num_steps;
@@ -68,8 +70,8 @@ int main() {
         }
     };
 
-    auto pi_sections_threaded = []() {
-        long i, num_steps = 1000000;
+    auto pi_sections_threaded = [](long num_steps) {
+        long i;
         double step, pi, x, sum = 0.0;
         step = 1.0 / (double)num_steps;
 
@@ -118,22 +120,31 @@ int main() {
         }
     };
 
-    pi_tests.add_function("Вычисление числа Пи последовательно", pi_seq);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(static) (2 ядра)", pi_static_threaded, 2);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(static) (3 ядра)", pi_static_threaded, 3);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(static) (4 ядра)", pi_static_threaded, 4);
 
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(dynamic) (2 ядра)", pi_dynamic_threaded, 2);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(dynamic) (3 ядра)", pi_dynamic_threaded, 3);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(dynamic) (4 ядра)", pi_dynamic_threaded, 4);
-    
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(guided) (2 ядра)", pi_guided_threaded, 2);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(guided) (3 ядра)", pi_guided_threaded, 3);
-    pi_tests.add_function("Вычисление числа Пи параллельно schedule(guided) (4 ядра)", pi_guided_threaded, 4);
+    for (int i = 0; i < 4; ++i) {
 
-    pi_tests.add_function("Вычисление числа Пи параллельно sections (2 ядра)", pi_sections_threaded, 2);
-    pi_tests.add_function("Вычисление числа Пи параллельно sections (3 ядра)", pi_sections_threaded, 3);
-    pi_tests.add_function("Вычисление числа Пи параллельно sections (4 ядра)", pi_sections_threaded, 4);
+        long num_steps = 1000000 * (i + 1);
+        std::string meaning = std::format("с набором данных {}", num_steps);
+
+        pi_tests.add_function(std::format("Вычисление числа Пи последовательно {}", meaning), pi_seq, 1, num_steps);
+
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(static) (2 ядра) {}", meaning), pi_static_threaded, 2, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(static) (3 ядра) {}", meaning), pi_static_threaded, 3, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(static) (4 ядра) {}", meaning), pi_static_threaded, 4, num_steps);
+
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(dynamic) (2 ядра) {}", meaning), pi_dynamic_threaded, 2, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(dynamic) (3 ядра) {}", meaning), pi_dynamic_threaded, 3, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(dynamic) (4 ядра) {}", meaning), pi_dynamic_threaded, 4, num_steps);
+
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(guided) (2 ядра) {}", meaning), pi_guided_threaded, 2, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(guided) (3 ядра) {}", meaning), pi_guided_threaded, 3, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно schedule(guided) (4 ядра) {}", meaning), pi_guided_threaded, 4, num_steps);
+
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно sections (2 ядра) {}", meaning), pi_sections_threaded, 2, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно sections (3 ядра) {}", meaning), pi_sections_threaded, 3, num_steps);
+        pi_tests.add_function(std::format("Вычисление числа Пи параллельно sections (4 ядра) {}", meaning), pi_sections_threaded, 4, num_steps);
+
+    }
 
     pi_tests.do_tests();
 
