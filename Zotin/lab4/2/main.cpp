@@ -264,7 +264,7 @@ static double run_average_time_impl(
 
 int main(int argc, char** argv)
 {
-    vector<string> inputs = { "100x100.bmp", "200x200.bmp", "300x300.bmp" };
+    vector<string> inputs = { "1600x900.bmp", "2000x1200.bmp", "2560x1440.bmp" };
     int runs = 10;
     vector<int> ksizes = { 7, 11, 15 };
     vector<int> requested_threads = { 2, 3, 4 };

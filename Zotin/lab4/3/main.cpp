@@ -400,7 +400,7 @@ static double run_average_time_impl_tf(
 int main(int argc, char** argv)
 {
     setlocale(LC_ALL, "");
-    vector<string> inputs = { "100x100.bmp", "200x200.bmp", "300x300.bmp" };
+    vector<string> inputs = { "1600x900.bmp", "2000x1200.bmp", "2560x1440.bmp" };
 
     // Параметры эксперимента
     int runs_texture = 7; 
